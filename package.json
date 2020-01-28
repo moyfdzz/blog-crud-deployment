@@ -1,0 +1,25 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "Blog CRUD Lab 6",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moyfdzz/blog-crud-lab-6.git"
+  },
+  "author": "Moisés Fernández",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/moyfdzz/blog-crud-lab-6/issues"
+  },
+  "homepage": "https://github.com/moyfdzz/blog-crud-lab-6#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "morgan": "^1.9.1",
+    "uuid": "^3.4.0"
+  }
+}
