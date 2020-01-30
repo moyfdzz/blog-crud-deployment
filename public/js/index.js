@@ -130,7 +130,7 @@ function displayComments(responseJSON) {
             <div class="commentPost">
                 <div>
                     <h2>${comment.titulo}</h2>
-                    <h4>By ${comment.autor}</h4>
+                    <h4>Por ${comment.autor}</h4>
                     <p>${comment.contenido}</p>
                     <p><i>${new Date(comment.fecha)}</i></p>
                 </div>
@@ -224,19 +224,19 @@ function watchForms() {
 function buttons() {
     $('#commentsList').on('click', '.editButton', function(event) {
         $(this).parent().parent().parent().find('.editCommentContainer').empty();
-        $(this).parent().parent().find('.editCommentContainer').append(`
+        $(this).parent().parent().parent().find('.editCommentContainer').append(`
             <form class="editComment">
                 <div>
                     <label for="title">Título:</label>
-                    <input type="text" id="title" name="title">
+                    <input type="text" id="titleEdit" name="titleEdit">
                 </div>
                 <div>
                     <label for="author">Autor:</label>
-                    <input type="text" id="author" name="author">
+                    <input type="text" id="authorEdit" name="authorEdit">
                 </div>
                 <div>
                     <label for="content">Contenido:</label>
-                    <textarea name="content" id="content" cols="70" rows="5"></textarea>
+                    <textarea name="content" id="contentEdit" cols="70" rows="5"></textarea>
                 </div>
                 <button type="submit">Editar</button>
             </form>

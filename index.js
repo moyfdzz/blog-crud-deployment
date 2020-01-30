@@ -3,8 +3,11 @@ let morgan = require('morgan')
 let bodyParser = require('body-parser');
 let jsonParser = bodyParser.json();
 let uuid = require('uuid/v4');
+let mongoose = require('mongoose');
 
 let app = express();
+let {CommentController} = require('./model');
+let {DATABASE_URL, PORT} = require('./config');
 
 app.use(express.static('public'));
 app.use(morgan('dev'));
@@ -52,7 +55,15 @@ let comentarios = [{
 
 // 7 a. GET /blog-api/comentarios
 app.get('/blog-api/comentarios', (req,res) => {
-    return res.status(200).json(comentarios);
+    CommentController.getAll()
+        .then(comments => {
+            return res.status(200).json(comments);
+        })
+        .catch(error => {
+            console.log(error);
+            res.statusMessage = 'Error 500: Database error.';
+            return res.status(500).send();
+        });
 });
 
 // 7 b. GET /blog-api/comentarios-por-autor?autor=valor
@@ -65,19 +76,15 @@ app.get('/blog-api/comentarios-por-autor', jsonParser, (req,res) => {
         return res.status(406).send();
     }
 
-    let comentariosPorA = comentarios.filter((comentario) => {
-        if (comentario.autor === autor) {
-            return comentario;
-        }
-    });
-    
-    if (comentariosPorA.length < 1) {
-        res.statusMessage = 'El autor ingresado no tiene comentarios en el blog.';
-
-        return res.status(404).send();
-    }
-    
-    return res.status(200).json(comentariosPorA);
+    CommentController.getByAuthor(autor)
+        .then(aut => {
+            return res.status(200).json(aut);
+        })
+        .catch(error => {
+            console.log(error);
+            res.statusMessage = 'Error 500: Database error.';
+            return res.status(500).send();
+        });
 });
 
 // 7 c. POST /blog-api/nuevo-comentario
@@ -93,39 +100,44 @@ app.post('/blog-api/nuevo-comentario', jsonParser, (req,res) => {
     }
 
     let nuevoComentario = {
-        id: uuid(),
         titulo: titulo,
         contenido: contenido,
         autor: autor,
         fecha: new Date()
-    }
+    };
 
-    comentarios.push(nuevoComentario);
-
-    return res.status(201).send();
+    CommentController.create(nuevoComentario)
+        .then(nc => {
+            return res.status(201).json(nc);
+        })
+        .catch(error => {
+            console.log(error);
+            res.statusMessage = 'Error 500: Database error.';
+            return res.status(500).send();
+        });
 });
 
 // 7 d. DELETE /blog-api/remover-comentario/:id
 app.delete('/blog-api/remover-comentario/:id', jsonParser, (req,res)=>{
     let id = req.params.id;
 
-    let comentario = comentarios.find((comentario) => {
-        if (comentario.id === id) {
-            return comentario;
-        }
-    });
-
-    let indice = comentarios.findIndex(comentario => comentario.id === id);
-
-    if (comentario === undefined) {
-        res.statusMessage = 'El comentario ingresado no existe.';
-
-        res.status(404).send();
-    }
-
-    comentarios.splice(indice, 1);
-
-    return res.status(200).send();
+    CommentController.getById(id)
+        .then(c => {
+            CommentController.delete(id)
+                .then(ru => {
+                    return res.status(200).send();
+                })
+                .catch(error => {
+                    console.log(error);
+                    res.statusMessage = 'Error 500: Database error.';
+                    return res.status(500).send();
+                });
+        })
+        .catch(error => {
+            console.log(error);
+            res.statusMessage = 'Error 500: Database error.';
+            return res.status(500).send();
+        });
 });
 
 // 7 e. PUT /blog-api/actualizar-comentario/:id
@@ -155,38 +167,78 @@ app.put('/blog-api/actualizar-comentario/:id', jsonParser, (req,res)=>{
         return res.status(406).send();
     }
 
-    let foundComment = false;
-    let comentarioActualizado;
+    let comentarioActualizado = {};
 
-    comentarios.forEach((comentario) => {
-        if (comentario.id.toString() === idParametro) {
-            foundComment = true;
-
-            if (titulo !== undefined) {
-                comentario.titulo = titulo;
-            }
-
-            if (contenido !== undefined) {
-                comentario.contenido = contenido;
-            }
-
-            if (autor !== undefined) {
-                comentario.autor = autor;
-            }
-
-            comentarioActualizado = comentario;
-        }
-    });
-
-    if (!foundComment) {
-        res.statusMessage = 'No existe un comentario con el id ingresado.';
-
-        return res.status(404).send();
+    if (titulo !== undefined) {
+        comentarioActualizado.titulo = titulo;
     }
 
-    return res.status(202).send(comentarioActualizado);
+    if (contenido !== undefined) {
+        comentarioActualizado.contenido = contenido;
+    }
+
+    if (autor !== undefined) {
+        comentarioActualizado.autor = autor;
+    }
+
+    CommentController.getById(idParametro)
+        .then(c => {
+            CommentController.update(idParametro, comentarioActualizado)
+                .then(nc => {
+                    res.status(202).json(nc);
+                })
+                .catch(error => {
+                    console.log(error);
+                    res.statusMessage = 'Error 404: El id no fue encontrado.';
+                    return res.status(404).send();
+                });
+        })
+        .catch(error => {
+            console.log(error);
+            res.statusMessage = 'Error 500: Database error.';
+            return res.status(500).send();
+        });
 });
 
-app.listen(8080, () => {
-    console.log('El servidor está corriendo en el puerto 8080.');
-})
+let server;
+
+function runServer(port, databaseUrl) {
+    return new Promise((resolve, reject) => {
+        mongoose.connect(databaseUrl, response => {
+            if (response) {
+                return reject(response);
+            }
+            else {
+                server = app.listen(port, () => {
+                    console.log("App is running on port " + port);
+                    resolve();
+                })
+                    .on('error', err => {
+                        mongoose.disconnect();
+                        return reject(err);
+                    })
+            }
+        });
+    });
+}
+
+function closeServer() {
+    return mongoose.disconnect()
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                console.log('Closing the server');
+                server.close(err => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    else {
+                        resolve();
+                    }
+                });
+            });
+        });
+}
+
+runServer(PORT, DATABASE_URL);
+
+module.exports = {app, runServer, closeServer};
