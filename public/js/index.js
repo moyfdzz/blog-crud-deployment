@@ -132,15 +132,9 @@ function displayComments(responseJSON) {
                     <h2>${comment.titulo}</h2>
                     <h4>Por ${comment.autor}</h4>
                     <p>${comment.contenido}</p>
+                    <p>${comment._id}</p>
                     <p><i>${new Date(comment.fecha)}</i></p>
                 </div>
-                <div>
-                    <button value=${comment.id} class="editButton">Editar</button>
-                    <button value=${comment.id} class="deleteButton">Borrar</button>
-                </div>
-            </div>
-            <div class="editCommentContainer">
-    
             </div>
         `);
     });
@@ -163,9 +157,9 @@ function watchForms() {
     $('#postComment').on('submit', function(event) {
         event.preventDefault();
 
-        titulo = $('#title').val();
-        autor = $('#author').val();
-        contenido = $('#content').val();
+        let titulo = $('#titlePost').val();
+        let autor = $('#authorPost').val();
+        let contenido = $('#contentPost').val();
 
         if (titulo === '' || autor === '' || contenido === '') {
             alert('Por favor ingrese toda la información.');
@@ -173,9 +167,9 @@ function watchForms() {
             return;
         }
 
-        $('#title').val('');
-        $('#author').val('');
-        $('#content').val('');
+        $('#titlePost').val('');
+        $('#authorPost').val('');
+        $('#contentPost').val('');
 
         let newComment = {
             titulo: titulo,
@@ -186,18 +180,24 @@ function watchForms() {
         postComment(newComment);
     });
 
-    $('#commentsList').on('submit', '.editComment', function(event) {
+    $('#modifyComment').on('submit', function(event) {
         event.preventDefault();
 
-        let titulo = $('#titleEdit').val();
-        let autor = $('#authorEdit').val();
-        let contenido = $('#contentEdit').val();
+        let id = $('#idModify').val();
+        let titulo = $('#titleModify').val();
+        let autor = $('#authorModify').val();
+        let contenido = $('#contentModify').val();
 
         if (titulo === '' && autor === '' && contenido === '') {
             fetchComments();
 
             return;
         }
+
+        $('#idModify').val('');
+        $('#titleModify').val('');
+        $('#authorModify').val('');
+        $('#contentModify').val('');
 
         let newComment = {};
 
@@ -213,39 +213,18 @@ function watchForms() {
             newComment.contenido = contenido;
         }
 
-        let id = $(this).parent().parent().find('.editButton').val();
-
         newComment.id = id;
 
         updateComment(newComment, id);
     });
-}
 
-function buttons() {
-    $('#commentsList').on('click', '.editButton', function(event) {
-        $(this).parent().parent().parent().find('.editCommentContainer').empty();
-        $(this).parent().parent().parent().find('.editCommentContainer').append(`
-            <form class="editComment">
-                <div>
-                    <label for="title">Título:</label>
-                    <input type="text" id="titleEdit" name="titleEdit">
-                </div>
-                <div>
-                    <label for="author">Autor:</label>
-                    <input type="text" id="authorEdit" name="authorEdit">
-                </div>
-                <div>
-                    <label for="content">Contenido:</label>
-                    <textarea name="content" id="contentEdit" cols="70" rows="5"></textarea>
-                </div>
-                <button type="submit">Editar</button>
-            </form>
-`);
-    });
+    $('#deleteComment').on('submit', function(event) {
+        event.preventDefault();
 
-    $('#commentsList').on('click', '.deleteButton', function(event) {
-        let id = $(this).val();
+        let id = $('#idDelete').val();
 
+        $('#idDelete').val('');
+        
         deleteComment(id);
     });
 }
@@ -253,7 +232,6 @@ function buttons() {
 function init() {
     fetchComments();
     watchForms();
-    buttons();
 }
 
 init();

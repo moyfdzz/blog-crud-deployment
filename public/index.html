@@ -21,17 +21,51 @@
                 <legend>Publicar un comentario</legend>
                 <div>
                     <label for="title">Título:</label>
-                    <input type="text" id="title" name="title">
+                    <input type="text" id="titlePost" name="title">
                 </div>
                 <div>
                     <label for="author">Autor:</label>
-                    <input type="text" id="author" name="author">
+                    <input type="text" id="authorPost" name="author">
                 </div>
                 <div>
                     <label for="content">Contenido:</label>
-                    <textarea name="content" id="content" cols="70" rows="5"></textarea>
+                    <textarea name="content" id="contentPost" cols="70" rows="5"></textarea>
                 </div>
                 <button type="submit">Publicar</button>
+            </fieldset>
+        </form>
+
+        <form id="modifyComment">
+            <fieldset>
+                <legend>Modificar un comentario</legend>
+                <div>
+                    <label for="title">Id:</label>
+                    <input type="text" id="idModify" name="title">
+                </div>
+                <div>
+                    <label for="title">Título:</label>
+                    <input type="text" id="titleModify" name="title">
+                </div>
+                <div>
+                    <label for="author">Autor:</label>
+                    <input type="text" id="authorModify" name="author">
+                </div>
+                <div>
+                    <label for="content">Contenido:</label>
+                    <textarea name="content" id="contentModify" cols="70" rows="5"></textarea>
+                </div>
+                <button type="submit">Modificar</button>
+            </fieldset>
+        </form>
+
+        <form id="deleteComment">
+            <fieldset>
+                <legend>Eliminar un comentario</legend>
+                <div>
+                    <label for="title">Id:</label>
+                    <input type="text" id="idDelete" name="title">
+                </div>
+                <button type="submit">Borrar</button>
             </fieldset>
         </form>
 
